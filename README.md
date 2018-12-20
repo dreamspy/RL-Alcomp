@@ -1,4 +1,4 @@
 # Alcomp
-## Comparing Different Reinforcement Algorithms in the Gym environment
+## Comparing Different Reinforcement Learning Algorithms in the Gym environment
 ## Final project in Reinforcement Learning @ Reykjavik University
 
