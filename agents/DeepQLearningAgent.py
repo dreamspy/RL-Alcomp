@@ -4,6 +4,7 @@ from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
+import sys
 
 class DeepQLearningAgent:
     
@@ -28,11 +29,16 @@ class DeepQLearningAgent:
             nodes = self.nnDenseLayersSettings[i][0]
             activation = self.nnDenseLayersSettings[i][1]
             if i == 0:
-                model.add(Dense(nodes, input_shape=(self.obervationSpaceShape,), activation=activation))
+                model.add(Dense(nodes,
+                                input_shape = (self.obervationSpaceShape,),
+                                activation = activation))
             else:
-                model.add(Dense(nodes, activation=activation))
-        model.add(Dense(self.actionSpaceShape, activation="linear"))
-        model.compile(loss="mse", optimizer=Adam(lr=self.learningRate))
+                model.add(Dense(nodes,
+                                activation = activation))
+        model.add(Dense(self.actionSpaceShape,
+                        activation = "linear"))
+        model.compile(loss = "mse",
+                      optimizer = Adam(lr = self.learningRate))
         return model
 
     def getNextAction(self, currentState, greedy = False):
@@ -42,28 +48,30 @@ class DeepQLearningAgent:
         currentQ = self.model.predict(currentState)
         return np.argmax(currentQ[0])
 
-    def updatePolicy(self, currentState, lastAction, reward, done, successorState):
+    def processLastStep(self, currentState, lastAction, reward, done, successorState):
         # Save last state action pair to buffer
         self.buffer.append((currentState, lastAction, reward, successorState, done))
+
+        # Update exploration rate at end of each epoch
         if done:
-            return
+            if self.explorationRate > self.explorationFinalValue:
+                self.explorationRate *= self.explorationDiscountFactor
+            elif self.explorationRate < self. explorationFinalValue:
+                self.explorationRate = self.explorationFinalValue
+
         if len(self.buffer) < self.batchSize:
             return
-
         batch = random.sample(self.buffer, self.batchSize)
         for currentState, lastAction, reward, successorState, done in batch:
             successorState = np.array([successorState])
             currentState = np.array([currentState])
-            newQ = reward
-            if not done:
-                newQ = (reward + self.gamma * np.amax(self.model.predict(successorState)))
-            currentQ = self.model.predict(currentState)
-            currentQ[0][lastAction] = newQ
-            self.model.fit(currentState, currentQ, verbose=0)
-        if self.explorationRate > self.explorationFinalValue:
-            self.explorationRate *= self.explorationDiscountFactor
-        elif self.explorationRate < self. explorationFinalValue:
-            self.explorationRate = self.explorationFinalValue
+            if done:
+                newQ_a = reward
+            else:
+                newQ_a = (reward + self.gamma * np.amax(self.model.predict(successorState)))
+            newQ = self.model.predict(currentState)
+            newQ[0][lastAction] = newQ_a
+            self.model.fit(currentState, newQ, verbose = 0)
 
     def saveModel(self):
         self.model.save_weights('testmodel.pth.tar')

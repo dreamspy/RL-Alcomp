@@ -54,9 +54,9 @@ def playGame():
                 if done:
                     reward = 0
                     db("    Training Run: " + str(i) + ", exploration rate: " + str(agent.explorationRate) + " return: " + str(currentReturn), "")
-                    agent.updatePolicy(currentState, action, reward, done, successorState)
+                    agent.processLastStep(currentState, action, reward, done, successorState)
                     break
-                agent.updatePolicy(currentState, action, reward, done, successorState)
+                agent.processLastStep(currentState, action, reward, done, successorState)
                 currentState = successorState
 
         DB("  Evaluating agent...")
