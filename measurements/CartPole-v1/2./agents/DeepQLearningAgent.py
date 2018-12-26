@@ -14,13 +14,13 @@ class DeepQLearningAgent:
         self.nnDenseLayersSettings = [[20, "relu"],
                                       [20, "relu"]]
         self.explorationRate = 1.0
-        self.explorationFinalValue = 0.001
-        self.explorationDiscountFactor = 0.996552
+        self.explorationFinalValue = 0.01
+        self.explorationDiscountFactor = (0.01)**(1/400.) #0.994260074
         self.gamma = 0.95
-        self.learningRate = 0.01
+        self.learningRate = 0.001
         self.bufferSize = 1000000
         self.buffer = deque(maxlen=self.bufferSize)
-        self.batchSize = 10
+        self.batchSize = 30
         self.model = self.makeNeuralNet()
 
     def makeNeuralNet(self):
@@ -73,11 +73,11 @@ class DeepQLearningAgent:
             newQ[0][lastAction] = newQ_a
             self.model.fit(currentState, newQ, verbose = 0)
 
-    def saveModel(self):
-        self.model.save_weights('testmodel.pth.tar')
+    def saveModel(self, text = "kerasModel"):
+        self.model.save_weights(str(text) + '.pth.tar')
 
-    def loadModel(self):
-        self.model.load_weights('testmodel.pth.tar')
+    def loadModel(self, text = "kerasModel"):
+        self.model.load_weights(str(text) + '.pth.tar')
 
     # def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
     #     filepath = os.path.join(folder, filename)
