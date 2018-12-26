@@ -1,6 +1,6 @@
 import gym
 import numpy as np
-from agents.DeepQLearningAgent import DeepQLearningAgent as currentAgent
+from agents.DQNAgent import DQNAgent as currentAgent
 import sys
 
 ################################################################################################################
@@ -52,14 +52,14 @@ saveResultsToArgDir = True
 
 wunderModelLimit = 500
 
-nrOfEvaluations = 2
-nrOfBatches = 2
-trainingsPerBatch = 2
-runsPerEvaluation = 2
-# nrOfEvaluations = 10
-# nrOfBatches = 100
-# trainingsPerBatch = 5
-# runsPerEvaluation = 100
+#nrOfEvaluations = 2
+#nrOfBatches = 2
+#trainingsPerBatch = 2
+#runsPerEvaluation = 2
+nrOfEvaluations = 100
+nrOfBatches = 100
+trainingsPerBatch = 5
+runsPerEvaluation = 100
 
 # Verbose Level 1
 verbose1 = False
@@ -70,12 +70,14 @@ verbose2 = True
 # Verbose Level 1
 def db(head = "", tail = ""):
     if verbose1:
-        print str(head) + str(tail)
+        print(str(head) + str(tail))
+        #print str(head) + str(tail)
 
 # Verbose Level 2
 def DB(head = "", tail=""):
     if verbose2:
-        print str(head) + str(tail)
+        print(str(head) + str(tail))
+        #print str(head) + str(tail)
 
 # Construct save name for results
 def createSaveName(name = False, evaluation = -1, batch = -1, text = None):

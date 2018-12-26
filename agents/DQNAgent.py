@@ -6,7 +6,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 import sys
 
-class DeepQLearningAgent:
+class DQNAgent:
 
     def __init__(self, env):
         # Don't change these, neccessary for all agents
