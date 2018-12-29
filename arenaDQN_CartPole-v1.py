@@ -41,28 +41,24 @@ import sys
 # Settings
 #
 
-environmentName = "CartPole-v1"
-saveName = "CartPole_DQA_2x20"
+environmentName = "Acrobot-v1"
+saveName = "Acrobot-v1_DQN_2x20"
 if len(sys.argv) > 2:
     saveName += "_" + str(sys.argv[1])
 renderEnvironment = False
-onlyAcceptBetterModels = False
+onlyAcceptBetterModels = True
 onlySaveBestModel = True
 saveResultsToArgDir = True
 
 wunderModelLimit = 500
 
-#nrOfEvaluations = 2
-#nrOfBatches = 2
-#trainingsPerBatch = 2
-#runsPerEvaluation = 2
-nrOfEvaluations = 100
-nrOfBatches = 100
+nrOfEvaluations = 10
+nrOfBatches = 50
 trainingsPerBatch = 5
 runsPerEvaluation = 100
 
 # Verbose Level 1
-verbose1 = False
+verbose1 = True
 
 # Verbose Level 2
 verbose2 = True
@@ -108,7 +104,7 @@ def runMeasurements():
         agent = currentAgent(environment)
 
         averageBatchReturns = np.zeros((nrOfBatches,2), dtype = int) # score for each batch
-        highestAverage = 0
+        highestAverage = -1000000
 
         # Run batches of alternating trainings and evaluations
         for batch in range(nrOfBatches): # go through all train/evaluation batches
@@ -121,12 +117,12 @@ def runMeasurements():
                 currentReturn = 0
                 currentState = environment.reset()
                 while True:
-                    # if renderEnvironment: environment.render()
+                    #if renderEnvironment: environment.render()
                     action = agent.getNextAction(currentState)
                     successorState, reward, done, info = environment.step(action)
                     currentReturn += reward
                     if done:
-                        reward = 0
+                        # reward = 0
                         db("      Training Run: " + str(i) + ", exploration rate: " + str(agent.explorationRate) + " return: " + str(currentReturn), "")
                         agent.updatePolicy(currentState, action, reward, done, successorState)
                         break
@@ -167,10 +163,10 @@ def runMeasurements():
                 if averageReturn > highestAverage:
                     DB("    Accepting new model")
                     highestAverage = averageReturn
-                    agent.saveModel("tempModel")
+                    agent.saveModel(saveName + "_tempModel")
                 else:
                     DB("    Rejecting new model")
-                    agent.loadModel("tempModel")
+                    agent.loadModel(saveName + "_tempModel")
             elif onlySaveBestModel:
                 if averageReturn > highestAverage:
                     DB("    Saving best model")
@@ -185,7 +181,7 @@ def runMeasurements():
         averageRunReturns.append(list(averageBatchReturns))
 
         DB("  Saving evaluation results")
-        np.save(createSaveName(name = saveName, evaluation=evaluation, text = "ationReturn"), averageBatchReturns)
+        np.save(createSaveName(name = saveName, evaluation=evaluation, text = "finalEvationReturn"), averageBatchReturns)
 
         DB("  Saving final model")
         agent.saveModel(createSaveName(name = saveName, evaluation=evaluation, text = "finalModel"))
