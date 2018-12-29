@@ -1,6 +1,6 @@
 import gym
 import numpy as np
-from agents.randomAgent import randomAgent as currentAgent
+from agents.DQNAgent import DQNAgent as currentAgent
 import sys
 
 ################################################################################################################
@@ -41,23 +41,24 @@ import sys
 # Settings
 #
 
-environmentName = "CartPole-v1"
-saveName = "CartPole_randomAgent"
+environmentName = "Acrobot-v1"
+saveName = "Acrobot-v1_DQN_2x20"
 if len(sys.argv) > 2:
     saveName += "_" + str(sys.argv[1])
-renderEnvironment = True
-onlyAcceptBetterModels = False
+renderEnvironment = False
+onlyAcceptBetterModels = True
 onlySaveBestModel = True
+saveResultsToArgDir = True
+
 wunderModelLimit = 500
-renderInterval = 20
 
 nrOfEvaluations = 10
-nrOfBatches = 100
+nrOfBatches = 50
 trainingsPerBatch = 5
 runsPerEvaluation = 100
 
 # Verbose Level 1
-verbose1     = False
+verbose1 = True
 
 # Verbose Level 2
 verbose2 = True
@@ -65,12 +66,14 @@ verbose2 = True
 # Verbose Level 1
 def db(head = "", tail = ""):
     if verbose1:
-        print str(head) + str(tail)
+        print(str(head) + str(tail))
+        #print str(head) + str(tail)
 
 # Verbose Level 2
 def DB(head = "", tail=""):
     if verbose2:
-        print str(head) + str(tail)
+        print(str(head) + str(tail))
+        #print str(head) + str(tail)
 
 # Construct save name for results
 def createSaveName(name = False, evaluation = -1, batch = -1, text = None):
@@ -96,15 +99,17 @@ def runMeasurements():
     # Measure performance as a function nr of trainings
     for evaluation in range(nrOfEvaluations):
         DB("Evaluation nr: " + str(evaluation))
+
         # Change the agent by importing a different agent class
         agent = currentAgent(environment)
+
         averageBatchReturns = np.zeros((nrOfBatches,2), dtype = int) # score for each batch
-        highestAverage = 0
+        highestAverage = -1000000
 
         # Run batches of alternating trainings and evaluations
         for batch in range(nrOfBatches): # go through all train/evaluation batches
             DB("  Batch nr: ", str(batch))
-            # DB("    Exporation Rate: " + str(agent.explorationRate))
+            DB("    Exporation Rate: " + str(agent.explorationRate))
             DB("    Training...")
 
             # Train
@@ -112,14 +117,13 @@ def runMeasurements():
                 currentReturn = 0
                 currentState = environment.reset()
                 while True:
-                    # if renderEnvironment: environment.render()
+                    #if renderEnvironment: environment.render()
                     action = agent.getNextAction(currentState)
                     successorState, reward, done, info = environment.step(action)
                     currentReturn += reward
                     if done:
-                        reward = 0
-                        # db("      Training Run: " + str(i) + ", exploration rate: " + str(agent.explorationRate) + " return: " + str(currentReturn), "")
-                        db("      Training Run: " + str(i) + " return: " + str(currentReturn), "")
+                        # reward = 0
+                        db("      Training Run: " + str(i) + ", exploration rate: " + str(agent.explorationRate) + " return: " + str(currentReturn), "")
                         agent.updatePolicy(currentState, action, reward, done, successorState)
                         break
                     agent.updatePolicy(currentState, action, reward, done, successorState)
@@ -133,14 +137,13 @@ def runMeasurements():
                 currentReturn = 0
                 currentState = environment.reset()
                 while True:
-                    if i%renderInterval == 0:
+                    if i%20 == 0:
                         if renderEnvironment: environment.render()
                     action = agent.getNextAction(currentState, greedy = True)
                     currentState, reward, done, info = environment.step(action)
                     currentReturn += reward
                     if done:
-                        # db("      Evaluation Run: " + str(i) + ", exploration rate: " + str(agent.explorationRate) + " return: " + str(currentReturn), "")
-                        db("      Evaluation Run: " + str(i) + ", return: " + str(currentReturn), "")
+                        db("      Evaluation Run: " + str(i) + ", exploration rate: " + str(agent.explorationRate) + " return: " + str(currentReturn), "")
                         returnSum += currentReturn
                         break
 
@@ -160,10 +163,10 @@ def runMeasurements():
                 if averageReturn > highestAverage:
                     DB("    Accepting new model")
                     highestAverage = averageReturn
-                    agent.saveModel("tempModel")
+                    agent.saveModel(saveName + "_tempModel")
                 else:
                     DB("    Rejecting new model")
-                    agent.loadModel("tempModel")
+                    agent.loadModel(saveName + "_tempModel")
             elif onlySaveBestModel:
                 if averageReturn > highestAverage:
                     DB("    Saving best model")
@@ -178,7 +181,7 @@ def runMeasurements():
         averageRunReturns.append(list(averageBatchReturns))
 
         DB("  Saving evaluation results")
-        np.save(createSaveName(name = saveName, evaluation=evaluation, text = "ationReturn"), averageBatchReturns)
+        np.save(createSaveName(name = saveName, evaluation=evaluation, text = "finalEvationReturn"), averageBatchReturns)
 
         DB("  Saving final model")
         agent.saveModel(createSaveName(name = saveName, evaluation=evaluation, text = "finalModel"))
