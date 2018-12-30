@@ -4,6 +4,10 @@
 ### Main purpose:
 Train and evaluate performance of an agent playing a game in an OpenAI Gym environment.
 
+### Results:
+[Click here for a jupyter notebook with main results](https://github.com/dreamspy/RL-Alcomp/blob/master/Results%20-%20DQN%20agent%20solving%20CartPole-v1%20.ipynb)
+
+
 ### Run directions:
 
 * Command structure: `python arena.py <add this text to save files> <dir for save results>`
