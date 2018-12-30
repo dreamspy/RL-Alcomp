@@ -4,8 +4,13 @@
 ### Main purpose:
 Train and evaluate performance of an agent playing a game in an OpenAI Gym environment.
 
+### Agents
+Two agents were implemented:
+* Deep Q Learning (DQN) agent, as first introduced in the [Playing Atari with Deep Reinforcement Learning](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf) article by the DeepMind guys.
+* Tabular Q Learning agent
+
 ### Results:
-[Click here for a jupyter notebook with main results](https://github.com/dreamspy/RL-Alcomp/blob/master/Results%20-%20DQN%20agent%20solving%20CartPole-v1%20.ipynb)
+[Click here for a jupyter notebook with main results from DQN agent](https://github.com/dreamspy/RL-Alcomp/blob/master/Results%20-%20DQN%20agent%20solving%20CartPole-v1%20.ipynb)
 
 
 ### Run directions:
