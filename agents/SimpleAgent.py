@@ -1,16 +1,18 @@
+
 import random
 import numpy as np
 from collections import deque
 
 from joblib import dump, load
-from sklearn.multioutput import MultiOutputRegressor
-from lightgbm import LGBMRegressor
+
+from sklearn.base import RegressorMixin
 
 import sys
 
-class GBDTAgent:
+class SimpleAgent():
 
-    def __init__(self, env):
+    def __init__(self, env, model):
+        self.model = model
         # Don't change these, neccessary for all agents
         self.environment = env
         self.obervationSpaceShape = env.observation_space.shape[0]
@@ -24,7 +26,6 @@ class GBDTAgent:
         self.bufferSize = 1000
         self.buffer = deque(maxlen=self.bufferSize)
         self.batchSize = 20
-        self.model = MultiOutputRegressor(LGBMRegressor(n_estimators=100, n_jobs=-1))
 
         self.ready = False
 
@@ -54,7 +55,7 @@ class GBDTAgent:
         batch = random.sample(self.buffer, int(len(self.buffer)/1))
         
         X = []
-        targets = []
+        y = []
         for currentState, action, reward, successorState, terminal in batch:
             q_update = reward
             if not terminal:
@@ -73,10 +74,10 @@ class GBDTAgent:
             #print(action)
             #print(q_values)
             X.append(list(currentState[0]))
-            targets.append(q_values[0])
+            y.append(q_values[0])
         #print(X)
         #print(targets)
-        self.model.fit(X, targets)
+        self.model.fit(X, y)
         self.ready = True
         
         self.explorationRate *= self.explorationDiscountFactor

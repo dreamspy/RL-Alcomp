@@ -1,7 +1,17 @@
+# from google.colab import drive
+
+# gdrive_root = '/content/gdrive'
+
+# drive.mount(gdrive_root)
+
+# gdrive_path = f'{gdrive_root}/My Drive/GBDT-Cartpole'
+from time import time
+timestamp = int(time() * 1000)
+
 import gym
 import numpy as np
-from agents.GBDTAgent import GBDTAgent as currentAgent
-import sys
+from agents.SimpleAgent import SimpleAgent
+import sys, os
 
 ################################################################################################################
 #
@@ -41,28 +51,20 @@ import sys
 # Settings
 #
 
-environmentName = "CartPole-v1"
-saveName = "CartPole_GBDTA_100"
-if len(sys.argv) > 2:
-    saveName += "_" + str(sys.argv[1])
 renderEnvironment = False
-onlyAcceptBetterModels = False
+onlyAcceptBetterModels = True
 onlySaveBestModel = True
 saveResultsToArgDir = True
 
 wunderModelLimit = 500
 
-#nrOfEvaluations = 2
-#nrOfBatches = 2
-#trainingsPerBatch = 2
-#runsPerEvaluation = 2
-nrOfEvaluations = 100
-nrOfBatches = 100
+nrOfEvaluations = 10
+nrOfBatches = 50
 trainingsPerBatch = 5
 runsPerEvaluation = 100
 
 # Verbose Level 1
-verbose1 = False
+verbose1 = True
 
 # Verbose Level 2
 verbose2 = True
@@ -79,36 +81,37 @@ def DB(head = "", tail=""):
         print(str(head) + str(tail))
         #print str(head) + str(tail)
 
-# Construct save name for results
-def createSaveName(name = False, evaluation = -1, batch = -1, text = None):
-    tempText = ""
-    if len(sys.argv) > 2:
-        tempText += str(sys.argv[2]) + "/"
-    if name:
-        tempText += saveName + "_"
-    if evaluation != -1:
-        tempText += "eval-" + str(evaluation) + "_"
-    if batch != -1:
-        temptext += "batch-" + str(batch) + "_"
-    if text != None:
-        tempText += text
-    return tempText
-
 # Run a bunch of measurements of agent performance as a function of nr of training runs
-def runMeasurements():
+def runMeasurements(model, name, envName):
+    path = f'./data/{envName}/{name}'
+    if not os.path.exists(path):
+        os.makedirs(path)
+    savePrefix = f'{path}/{timestamp}_'
+
+    # Construct save name for results
+    def createSaveName(prefix = savePrefix, evaluation = -1, batch = -1, text = None):
+        tempText = prefix
+        if evaluation != -1:
+            tempText += "eval-" + str(evaluation) + "_"
+        if batch != -1:
+            tempText += "batch-" + str(batch) + "_"
+        if text != None:
+            tempText += text
+        return tempText
+    tempModelName = createSaveName(f'{savePrefix}tempModel')
 
     averageRunReturns = []
-    environment = gym.make(environmentName)
+    environment = gym.make(envName)
 
     # Measure performance as a function nr of trainings
     for evaluation in range(nrOfEvaluations):
         DB("Evaluation nr: " + str(evaluation))
 
         # Change the agent by importing a different agent class
-        agent = currentAgent(environment)
+        agent = SimpleAgent(environment, model)
 
         averageBatchReturns = np.zeros((nrOfBatches,2), dtype = int) # score for each batch
-        highestAverage = 0
+        highestAverage = -1000000
 
         # Run batches of alternating trainings and evaluations
         for batch in range(nrOfBatches): # go through all train/evaluation batches
@@ -121,16 +124,17 @@ def runMeasurements():
                 currentReturn = 0
                 currentState = environment.reset()
                 while True:
-                    # if renderEnvironment: environment.render()
+                    #if renderEnvironment: environment.render()
                     action = agent.getNextAction(currentState)
                     successorState, reward, done, info = environment.step(action)
                     currentReturn += reward
+                    agent.mem(currentState, action, reward, done, successorState)
                     if done:
-                        reward = 0
+                        # reward = 0
                         db("      Training Run: " + str(i) + ", exploration rate: " + str(agent.explorationRate) + " return: " + str(currentReturn), "")
-                        agent.updatePolicy(currentState, action, reward, done, successorState)
+                        agent.updatePolicy()
                         break
-                    agent.updatePolicy(currentState, action, reward, done, successorState)
+#                     agent.updatePolicy(currentState, action, reward, done, successorState)
                     currentState = successorState
 
             DB("    Evaluating agent...")
@@ -160,40 +164,40 @@ def runMeasurements():
             # Saving super high performance models
             if averageReturn > int(wunderModelLimit*0.9):
                 DB("    Saving WUNDERMODEL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                agent.saveModel(createSaveName(name = saveName, evaluation=evaluation, text = "WWWWWWWWWWWunderModel"))
+                agent.saveModel(createSaveName(evaluation=evaluation, text = "WWWWWWWWWWWunderModel"))
 
             # Save Models
             if onlyAcceptBetterModels:
                 if averageReturn > highestAverage:
                     DB("    Accepting new model")
                     highestAverage = averageReturn
-                    agent.saveModel("tempModel")
+                    agent.saveModel(tempModelName)
                 else:
                     DB("    Rejecting new model")
-                    agent.loadModel("tempModel")
+                    agent.loadModel(tempModelName)
             elif onlySaveBestModel:
                 if averageReturn > highestAverage:
                     DB("    Saving best model")
                     highestAverage = averageReturn
-                    agent.saveModel(createSaveName(name = saveName, evaluation=evaluation, text = "bestModel"))
+                    agent.saveModel(createSaveName(evaluation=evaluation, text = "bestModel"))
             else:
                 DB("    Saving model for current batch")
-                agent.saveModel(createSaveName(name = saveName, evaluation=evaluation, batch = batch))
+                agent.saveModel(createSaveName(evaluation=evaluation, batch = batch))
 
         # Save final model for the current evaluation
-        agent.saveModel(createSaveName(name = saveName, evaluation=evaluation, text = "finalModel"))
+        agent.saveModel(createSaveName(evaluation=evaluation, text = "finalModel"))
         averageRunReturns.append(list(averageBatchReturns))
 
         DB("  Saving evaluation results")
-        np.save(createSaveName(name = saveName, evaluation=evaluation, text = "ationReturn"), averageBatchReturns)
+        np.save(createSaveName(evaluation=evaluation, text = "finalEvationReturn"), averageBatchReturns)
 
         DB("  Saving final model")
-        agent.saveModel(createSaveName(name = saveName, evaluation=evaluation, text = "finalModel"))
+        agent.saveModel(createSaveName(evaluation=evaluation, text = "finalModel"))
 
     DB("Saving final evaluation results")
-    np.save(createSaveName(name = saveName, text = "finalResults"), np.array(averageRunReturns))
+    np.save(createSaveName(text = "finalResults"), np.array(averageRunReturns))
 
-    # loadTest = np.load(createSaveName(name = saveName, text = "finalResults") + ".npy")
+    # loadTest = np.load(createSaveName(text = "finalResults") + ".npy")
 
-if __name__ == "__main__":
-    runMeasurements()
+def runArena(model, modelName, environmentName):
+    runMeasurements(model, modelName, environmentName)
