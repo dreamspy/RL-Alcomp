@@ -129,10 +129,11 @@ def runMeasurements():
                     action = agent.getNextAction(currentState)
                     successorState, reward, done, info = environment.step(action)
                     currentReturn += reward
+                    agent.mem(currentState, action, reward, done, successorState)
                     if done:
                         # reward = 0
                         db("      Training Run: " + str(i) + ", exploration rate: " + str(agent.explorationRate) + " return: " + str(currentReturn), "")
-                        agent.updatePolicy(currentState, action, reward, done, successorState)
+                        agent.updatePolicy()
                         break
 #                     agent.updatePolicy(currentState, action, reward, done, successorState)
                     currentState = successorState

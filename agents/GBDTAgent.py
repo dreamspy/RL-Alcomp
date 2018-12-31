@@ -30,6 +30,8 @@ class GBDTAgent:
 
     # Return next action from agent
     def getNextAction(self, currentState, greedy = False):
+        currentState = np.reshape(currentState, [1, self.obervationSpaceShape])
+      
         if np.random.rand() < self.explorationRate and not greedy:
             return random.randrange(self.actionSpaceShape)
         if self.ready:
@@ -39,6 +41,8 @@ class GBDTAgent:
         return np.argmax(currentQ[0])
       
     def mem(self, currentState, lastAction, reward, done, successorState):
+        currentState = np.reshape(currentState, [1, self.obervationSpaceShape])
+        successorState = np.reshape(successorState, [1, self.obervationSpaceShape])
         self.buffer.append((currentState, lastAction, -reward if done else reward, successorState, done))
 
     # Update policy of agent with sample returns
