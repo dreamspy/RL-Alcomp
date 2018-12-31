@@ -50,7 +50,7 @@ import sys
 #
 
 environmentName = "CartPole-v1"
-saveName = f"{gdrive_path}/CartPole_GBDTA_100"
+saveName = "CartPole_GBDTA_100"
 if len(sys.argv) > 2:
     saveName += "_" + str(sys.argv[1])
 renderEnvironment = False
@@ -85,9 +85,7 @@ def DB(head = "", tail=""):
 
 # Construct save name for results
 def createSaveName(name = False, evaluation = -1, batch = -1, text = None):
-    tempText = ""
-    if len(sys.argv) > 2:
-        tempText += str(sys.argv[2]) + "/"
+    tempText = gdrive_path + '/'
     if name:
         tempText += saveName + "_"
     if evaluation != -1:
@@ -97,7 +95,7 @@ def createSaveName(name = False, evaluation = -1, batch = -1, text = None):
     if text != None:
         tempText += text
     return tempText
-  
+
 # Run a bunch of measurements of agent performance as a function of nr of training runs
 def runMeasurements():
 
@@ -172,10 +170,10 @@ def runMeasurements():
                 if averageReturn > highestAverage:
                     DB("    Accepting new model")
                     highestAverage = averageReturn
-                    agent.saveModel(saveName + "_tempModel")
+                    agent.saveModel(f'{gdrive_path}/{saveName}' + "_tempModel")
                 else:
                     DB("    Rejecting new model")
-#                     agent.loadModel(saveName + "_tempModel")
+                    agent.loadModel(f'{gdrive_path}/{saveName}' + "_tempModel")
             elif onlySaveBestModel:
                 if averageReturn > highestAverage:
                     DB("    Saving best model")
@@ -201,4 +199,4 @@ def runMeasurements():
     # loadTest = np.load(createSaveName(name = saveName, text = "finalResults") + ".npy")
 
 if __name__ == "__main__":
-    runMeasurements()
+     runMeasurements()
