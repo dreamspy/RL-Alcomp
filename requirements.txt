@@ -1,3 +1,6 @@
+joblib
+sklearn
+lightgbm
 numpy
 gym
 keras
