@@ -1,6 +1,14 @@
+from google.colab import drive
+
+gdrive_root = '/content/gdrive'
+
+drive.mount(gdrive_root)
+
+gdrive_path = f'{gdrive_root}/My Drive/GBDT-Cartpole'
+
 import gym
 import numpy as np
-from agents.GBDTAgent import GBDTAgent as currentAgent
+currentAgent = GBDTAgent
 import sys
 
 ################################################################################################################
@@ -42,7 +50,7 @@ import sys
 #
 
 environmentName = "CartPole-v1"
-saveName = "CartPole_GBDTA_100"
+saveName = f"{gdrive_path}/CartPole_GBDTA_100"
 if len(sys.argv) > 2:
     saveName += "_" + str(sys.argv[1])
 renderEnvironment = False
@@ -89,7 +97,7 @@ def createSaveName(name = False, evaluation = -1, batch = -1, text = None):
     if text != None:
         tempText += text
     return tempText
-
+  
 # Run a bunch of measurements of agent performance as a function of nr of training runs
 def runMeasurements():
 
@@ -126,7 +134,7 @@ def runMeasurements():
                         db("      Training Run: " + str(i) + ", exploration rate: " + str(agent.explorationRate) + " return: " + str(currentReturn), "")
                         agent.updatePolicy(currentState, action, reward, done, successorState)
                         break
-                    agent.updatePolicy(currentState, action, reward, done, successorState)
+#                     agent.updatePolicy(currentState, action, reward, done, successorState)
                     currentState = successorState
 
             DB("    Evaluating agent...")
@@ -166,7 +174,7 @@ def runMeasurements():
                     agent.saveModel(saveName + "_tempModel")
                 else:
                     DB("    Rejecting new model")
-                    agent.loadModel(saveName + "_tempModel")
+#                     agent.loadModel(saveName + "_tempModel")
             elif onlySaveBestModel:
                 if averageReturn > highestAverage:
                     DB("    Saving best model")

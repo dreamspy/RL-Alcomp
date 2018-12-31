@@ -15,13 +15,10 @@ class GBDTAgent:
         self.environment = env
         self.obervationSpaceShape = env.observation_space.shape[0]
         self.actionSpaceShape = env.action_space.n
-
-        # Settings for current agent
-        self.nnDenseLayersSettings = [[20, "relu"],
-                                      [20, "relu"]]
+        
         self.explorationRate = 1.0
         self.explorationFinalValue = 0.01
-        self.explorationDiscountFactor = (0.01)**(1/400.) #0.994260074
+        self.explorationDiscountFactor = 0.96
         self.gamma = 0.95
         self.learningRate = 0.001
         self.bufferSize = 1000
@@ -36,41 +33,34 @@ class GBDTAgent:
         if np.random.rand() < self.explorationRate and not greedy:
             return random.randrange(self.actionSpaceShape)
         if self.ready:
-            currentQ = self.model.predict(np.array([currentState]))
+            currentQ = self.model.predict(currentState)
         else:
             currentQ = np.zeros(self.actionSpaceShape).reshape(1, -1)
         return np.argmax(currentQ[0])
-
-    # Update policy of agent with sample returns
-    def updatePolicy(self, currentState, lastAction, reward, done, successorState):
-        # Save last state action pair to buffer
+      
+    def mem(self, currentState, lastAction, reward, done, successorState):
         self.buffer.append((currentState, lastAction, -reward if done else reward, successorState, done))
 
+    # Update policy of agent with sample returns
+    def updatePolicy(self):
         # Update exploration rate at end of each epoch
-        if done:
-            if self.explorationRate > self.explorationFinalValue:
-                self.explorationRate *= self.explorationDiscountFactor
-            elif self.explorationRate < self. explorationFinalValue:
-                self.explorationRate = self.explorationFinalValue
 
         if len(self.buffer) < self.batchSize:
             return
-        batch = random.sample(self.buffer, self.batchSize)
+        batch = random.sample(self.buffer, int(len(self.buffer)/1))
         
         X = []
         targets = []
-        for state, action, reward, state_next, terminal in batch:
-            state = np.array([successorState])
-            state_next = np.array([currentState])
+        for currentState, action, reward, successorState, terminal in batch:
             q_update = reward
             if not terminal:
                 if self.ready:
-                    q_update = (reward + self.gamma * np.amax(self.model.predict(state_next)))
+                    q_update = (reward + self.gamma * np.amax(self.model.predict(successorState)))
                     #print(self.model.predict(state_next))
                 else:
                     q_update = reward
             if self.ready:
-                q_values = self.model.predict(state)
+                q_values = self.model.predict(currentState)
             else:
                 q_values = np.zeros(self.actionSpaceShape).reshape(1, -1)
             q_values[0][action] = q_update
@@ -78,30 +68,15 @@ class GBDTAgent:
             #print(state)
             #print(action)
             #print(q_values)
-            X.append(list(state[0]))
+            X.append(list(currentState[0]))
             targets.append(q_values[0])
         #print(X)
         #print(targets)
         self.model.fit(X, targets)
         self.ready = True
-#         self.exploration_rate *= EXPLORATION_DECAY
-#         self.exploration_rate = max(EXPLORATION_MIN, self.exploration_rate)
-
-#         states = []
-#         targets = []
-#         for currentState, lastAction, reward, successorState, done in batch:
-#             if not self.ready or done:
-#                 newQ_a = reward
-#             else:
-#                 newQ_a = (reward + self.gamma * np.amax(self.model.predict(successorState)))
-#             newQ = self.model.predict(currentState) if self.ready else np.zeros(self.actionSpaceShape).reshape(1,-1)
-#             newQ[0][lastAction] = newQ_a
-            
-#             states.append(currentState)
-#             targets.append(newQ[0])
-
-#         self.model.fit(states, targets)
-#         self.ready = True
+        
+        self.explorationRate *= self.explorationDiscountFactor
+        self.explorationRate = max(self.explorationFinalValue, self.explorationRate)
 
     # Save current policy model
     def saveModel(self, modelName ="kerasModel"):
