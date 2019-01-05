@@ -12,7 +12,9 @@ Three agents were implemented:
 results for this agent, since we didn't find it as interesting as the function approximation versions of Q-learning.
 
 ### Results:
-[Click here for a pdf from jupyter notebook with main results from DQN agent and 3 versions of the generic agent](https://github.com/dreamspy/RL-Alcomp/blob/master/Results.pdf)
+Summary of results from DQN agent and 3 versions of the generic agent:
+- [Jupyter Notebook](https://github.com/dreamspy/RL-Alcomp/blob/master/Results.ipynb)
+- [PDF](https://github.com/dreamspy/RL-Alcomp/blob/master/Results.pdf)
 
 ### Extra:
 See the Tabular agent
