@@ -1,5 +1,6 @@
 from sklearn.svm import SVR
+from sklearn.multioutput import MultiOutputRegressor
 from arenaSimple_Any import runArena
 
 if __name__ == "__main__":
-    runArena(SVR(), 'SVR', "CartPole-v1")
+    runArena(MultiOutputRegressor(SVR(gamma='auto')), 'SVR', "CartPole-v1")

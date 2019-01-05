@@ -5,13 +5,16 @@
 # drive.mount(gdrive_root)
 
 # gdrive_path = f'{gdrive_root}/My Drive/GBDT-Cartpole'
-from time import time
-timestamp = int(time() * 1000)
 
 import gym
 import numpy as np
 from agents.SimpleAgent import SimpleAgent
 import sys, os
+
+from time import time
+timestamp = int(time() * 1000)
+
+
 
 ################################################################################################################
 #
