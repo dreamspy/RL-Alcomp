@@ -12,7 +12,7 @@ Three agents were implemented:
 results for this agent, since we didn't find it as interesting as the function approximation versions of Q-learning.
 
 ### Results:
-[Click here for a jupyter notebook with main results from DQN agent and 3 versions of the generic agent](https://github.com/dreamspy/RL-Alcomp/blob/master/Results%20-%20DQN%20agent%20solving%20CartPole-v1%20.ipynb)
+[Click here for a pdf from jupyter notebook with main results from DQN agent and 3 versions of the generic agent](https://github.com/dreamspy/RL-Alcomp/blob/master/Results.pdf)
 
 ### Extra:
 See the Tabular agent
